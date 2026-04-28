@@ -49,9 +49,10 @@
     <div class="form-group">
         <label for="activityType">🎮 活動類型</label>
         <select id="activityType">
-            <option value="recreation">團康遊戲 (Recreation)</option>
-            <option value="training">團隊培訓 (Training)</option>
-            <option value="party">社交派對 (Party)</option>
+            <option value="high_dynamic">高動態競技 (球類、大逃殺、水上)</option>
+            <option value="mystery_solving">腦力實境解謎 (密室、尋寶、RPG)</option>
+            <option value="workshop">創意協作工作坊 (手作、繪畫、烹飪)</option>
+            <option value="social_party">休閒社交派對 (營火、KTV、桌遊)</option>
         </select>
     </div>
 
@@ -59,7 +60,7 @@
         <label>📍 場地環境感知</label>
         <div class="mode-switch">
             <input type="radio" id="mode-gps" name="loc-mode" value="gps" checked onclick="toggleLocMode('gps')">
-            <label for="mode-gps">當前位置 (GPS)</label>
+            <label for="mode-gps">當current位置 (GPS)</label>
             <input type="radio" id="mode-manual" name="loc-mode" value="manual" onclick="toggleLocMode('manual')">
             <label for="mode-manual">手動搜尋</label>
         </div>
@@ -82,10 +83,9 @@
 </div>
 
 <script>
-    // 1. 初始化 LIFF
     async function main() {
         try {
-            await liff.init({ liffId: "2009929425-I5NNaicXK" }); // 使用你的實體 ID
+            await liff.init({ liffId: "2009929425-I5NNaicXK" });
             if (liff.isLoggedIn()) {
                 const profile = await liff.getProfile();
                 document.getElementById("user-info").style.display = "flex";
@@ -99,14 +99,12 @@
         }
     }
 
-    // 2. 切換地點模式
     function toggleLocMode(mode) {
         document.getElementById('gps-area').style.display = (mode === 'gps') ? 'block' : 'none';
         document.getElementById('manual-area').style.display = (mode === 'manual') ? 'block' : 'none';
         document.getElementById('location-display').innerText = "等待設定地點...";
     }
 
-    // 3. 獲取 GPS 座標
     async function getGPSLocation() {
         const display = document.getElementById("location-display");
         display.innerText = "衛星定位中...";
@@ -122,7 +120,6 @@
         }
     }
 
-    // 4. 送出資料到 n8n (目前先做檢查邏輯)
     function submitToN8N() {
         const people = document.getElementById("peopleCount").value;
         const type = document.getElementById("activityType").value;
@@ -132,10 +129,17 @@
 
         if (!people) return alert("請輸入參加人數！");
 
+        const typeLabels = {
+            "high_dynamic": "高動態競技",
+            "mystery_solving": "腦力實境解謎",
+            "workshop": "創意協作工作坊",
+            "social_party": "休閒社交派對"
+        };
+
         const payload = {
             userId: document.getElementById("displayName").innerText,
             count: people,
-            type: type,
+            type: typeLabels[type],
             location: {
                 address: address || "GPS 模式",
                 lat: lat,
@@ -144,9 +148,7 @@
         };
 
         console.log("準備傳送至 n8n:", payload);
-        alert(`【智動創遊】資料收集成功！\n人數：${people}\n類型：${type}\n準備啟動 AI 模擬流程...`);
-        
-        // 下一步：在此加入 fetch('你的_n8n_webhook_url', { method: 'POST', ... })
+        alert(`【智動創遊】資料收集成功！\n人數：${people}\n類型：${typeLabels[type]}\n準備啟動 AI 模擬流程...`);
     }
 
     main();
