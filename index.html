@@ -3,155 +3,129 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>智動創遊 (SmartPlay AI) - 行政代理人</title>
+    <title>SmartPlay AI 行政代理人</title>
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <style>
-        :root { --primary-color: #00b900; --secondary-color: #007bff; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #f4f7f6; color: #333; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
-        .container { background: white; width: 100%; max-width: 400px; padding: 20px; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-        h1 { font-size: 1.5rem; text-align: center; color: var(--primary-color); margin-bottom: 20px; }
-        .user-card { display: flex; align-items: center; background: #f9f9f9; padding: 10px; border-radius: 12px; margin-bottom: 20px; }
-        .user-card img { border-radius: 50%; width: 50px; height: 50px; margin-right: 12px; border: 2px solid var(--primary-color); }
-        
-        .form-group { margin-bottom: 18px; }
-        label { display: block; font-weight: bold; margin-bottom: 6px; font-size: 0.9rem; }
-        input, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 1rem; }
-        
-        .mode-switch { display: flex; gap: 10px; margin-bottom: 12px; }
-        .mode-switch label { flex: 1; text-align: center; background: #eee; padding: 8px; border-radius: 6px; cursor: pointer; font-weight: normal; }
-        .mode-switch input:checked + label { background: var(--secondary-color); color: white; font-weight: bold; }
-        .mode-switch input { display: none; }
-
-        .btn { width: 100%; padding: 14px; border: none; border-radius: 8px; font-size: 1rem; font-weight: bold; cursor: pointer; transition: 0.3s; }
-        .btn-gps { background-color: var(--secondary-color); color: white; margin-bottom: 10px; }
-        .btn-submit { background-color: var(--primary-color); color: white; margin-top: 10px; }
-        #location-display { font-size: 0.85rem; color: #666; margin-top: 5px; background: #fffde7; padding: 8px; border-radius: 4px; border-left: 4px solid #fbc02d; }
+        body { font-family: sans-serif; background: #f4f7f6; padding: 20px; color: #333; }
+        .container { max-width: 500px; margin: 0 auto; background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        h2 { color: #2c3e50; text-align: center; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input, select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; background: #27ae60; color: white; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; transition: 0.3s; }
+        button:hover { background: #219150; }
+        #result-area { margin-top: 20px; padding: 15px; border-radius: 8px; display: none; }
+        .loading { text-align: center; color: #7f8c8d; font-style: italic; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>智動創遊 SmartPlay</h1>
-
-    <div id="user-info" class="user-card" style="display: none;">
-        <img id="pictureUrl" alt="User Avatar">
-        <div>
-            <div style="font-size: 0.8rem; color: #888;">行政發起人</div>
-            <div id="displayName" style="font-weight: bold;">讀取中...</div>
-        </div>
+    <h2>🎮 SmartPlay AI 代理人</h2>
+    <p>歡迎，<span id="userName">讀取中...</span>！請輸入活動需求：</p>
+    
+    <div class="form-group">
+        <label>活動人數</label>
+        <input type="number" id="peopleCount" placeholder="例如：40">
     </div>
 
     <div class="form-group">
-        <label for="peopleCount">👥 預計參加人數</label>
-        <input type="number" id="peopleCount" placeholder="請輸入人數 (如: 40)">
-    </div>
-
-    <div class="form-group">
-        <label for="activityType">🎮 活動類型</label>
+        <label>活動類型</label>
         <select id="activityType">
-            <option value="high_dynamic">高動態競技 (球類、大逃殺、水上)</option>
-            <option value="mystery_solving">腦力實境解謎 (密室、尋寶、RPG)</option>
-            <option value="workshop">創意協作工作坊 (手作、繪畫、烹飪)</option>
-            <option value="social_party">休閒社交派對 (營火、KTV、桌遊)</option>
+            <option value="高">高動態競技 (跑跳、大動作)</option>
+            <option value="中">中動態遊戲 (分組對抗、互動)</option>
+            <option value="靜態">腦力實境解謎 (靜態思維)</option>
         </select>
     </div>
 
     <div class="form-group">
-        <label>📍 場地環境感知</label>
-        <div class="mode-switch">
-            <input type="radio" id="mode-gps" name="loc-mode" value="gps" checked onclick="toggleLocMode('gps')">
-            <label for="mode-gps">當current位置 (GPS)</label>
-            <input type="radio" id="mode-manual" name="loc-mode" value="manual" onclick="toggleLocMode('manual')">
-            <label for="mode-manual">手動搜尋</label>
-        </div>
-
-        <div id="gps-area">
-            <button class="btn btn-gps" onclick="getGPSLocation()">📍 抓取場地座標</button>
-        </div>
-
-        <div id="manual-area" style="display: none;">
-            <input type="text" id="addressInput" placeholder="輸入場地名稱或地址">
-        </div>
-        
-        <div id="location-display">等待設定地點...</div>
+        <label>預計地點</label>
+        <input type="text" id="location" value="三峽校區商學院" placeholder="請輸入地點">
     </div>
 
-    <input type="hidden" id="lat">
-    <input type="hidden" id="lng">
+    <button id="submitBtn" onclick="submitToN8N()">開始智慧規劃</button>
 
-    <button class="btn btn-submit" onclick="submitToN8N()">🚀 生成 AI 企劃方案</button>
+    <div id="loading" class="loading" style="display:none;">AI 正在翻閱資料庫並規劃中...</div>
+    <div id="result-area"></div>
 </div>
 
 <script>
-    async function main() {
+    // --- 串接位子 1：請填入你的 LIFF ID ---
+    const MY_LIFF_ID = '你的_LIFF_ID_填在這裡';
+    // --- 串接位子 2：請填入你的 n8n Webhook URL ---
+    const N8N_WEBHOOK_URL = '你的_N8N_PRODUCTION_WEBHOOK_URL_填在這裡';
+
+    async function initializeLiff() {
         try {
-            await liff.init({ liffId: "2009929425-I5NNaicXK" });
+            await liff.init({ liffId: MY_LIFF_ID });
             if (liff.isLoggedIn()) {
                 const profile = await liff.getProfile();
-                document.getElementById("user-info").style.display = "flex";
-                document.getElementById("displayName").innerText = profile.displayName;
-                document.getElementById("pictureUrl").src = profile.pictureUrl;
+                document.getElementById('userName').innerText = profile.displayName;
             } else {
                 liff.login();
             }
         } catch (err) {
-            console.error("LIFF 初始化失敗", err);
+            console.error('LIFF 初始化失敗', err);
         }
     }
 
-    function toggleLocMode(mode) {
-        document.getElementById('gps-area').style.display = (mode === 'gps') ? 'block' : 'none';
-        document.getElementById('manual-area').style.display = (mode === 'manual') ? 'block' : 'none';
-        document.getElementById('location-display').innerText = "等待設定地點...";
-    }
+    async function submitToN8N() {
+        const people = document.getElementById('peopleCount').value;
+        const type = document.getElementById('activityType').value;
+        const loc = document.getElementById('location').value;
+        const user = document.getElementById('userName').innerText;
 
-    async function getGPSLocation() {
-        const display = document.getElementById("location-display");
-        display.innerText = "衛星定位中...";
-        try {
-            const loc = await liff.getLocation();
-            document.getElementById("lat").value = loc.latitude;
-            document.getElementById("lng").value = loc.longitude;
-            display.innerText = `成功鎖定：${loc.latitude.toFixed(4)}, ${loc.longitude.toFixed(4)}`;
-            display.style.color = "#28a745";
-        } catch (e) {
-            display.innerText = "定位失敗，請確認 LINE 權限或改用手動搜尋";
-            display.style.color = "#dc3545";
-        }
-    }
+        if (!people) return alert("請輸入人數！");
 
-    function submitToN8N() {
-        const people = document.getElementById("peopleCount").value;
-        const type = document.getElementById("activityType").value;
-        const address = document.getElementById("addressInput").value;
-        const lat = document.getElementById("lat").value;
-        const lng = document.getElementById("lng").value;
-
-        if (!people) return alert("請輸入參加人數！");
-
-        const typeLabels = {
-            "high_dynamic": "高動態競技",
-            "mystery_solving": "腦力實境解謎",
-            "workshop": "創意協作工作坊",
-            "social_party": "休閒社交派對"
-        };
+        // 顯示載入狀態
+        document.getElementById('submitBtn').disabled = true;
+        document.getElementById('loading').style.display = 'block';
+        document.getElementById('result-area').style.display = 'none';
 
         const payload = {
-            userId: document.getElementById("displayName").innerText,
-            count: people,
-            type: typeLabels[type],
-            location: {
-                address: address || "GPS 模式",
-                lat: lat,
-                lng: lng
-            }
+            activityType: type, // 對應 Excel 的「動態」欄位
+            peopleCount: people,
+            location: loc,
+            userName: user
         };
 
-        console.log("準備傳送至 n8n:", payload);
-        alert(`【智動創遊】資料收集成功！\n人數：${people}\n類型：${typeLabels[type]}\n準備啟動 AI 模擬流程...`);
+        try {
+            const response = await fetch(N8N_WEBHOOK_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                displayResult(data);
+            } else {
+                alert("n8n 伺服器反應異常，請檢查流程是否已發佈(Publish)。");
+            }
+        } catch (error) {
+            alert("連線失敗：" + error.message);
+        } finally {
+            document.getElementById('submitBtn').disabled = false;
+            document.getElementById('loading').style.display = 'none';
+        }
     }
 
-    main();
+    function displayResult(data) {
+        const resultArea = document.getElementById('result-area');
+        resultArea.style.display = 'block';
+        resultArea.style.background = '#e8f5e9';
+        
+        // 假設你的 AI Agent 輸出的文字欄位叫做 output 或 text
+        const aiText = data.output || data.text || JSON.stringify(data);
+        
+        resultArea.innerHTML = `
+            <h3 style="color: #27ae60;">✨ AI 規劃結果</h3>
+            <div style="white-space: pre-wrap; line-height: 1.6;">${aiText}</div>
+            <button onclick="location.reload()" style="margin-top:10px; background:#95a5a6;">重新規劃</button>
+        `;
+    }
+
+    initializeLiff();
 </script>
 
 </body>
