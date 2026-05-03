@@ -32,7 +32,7 @@
     <div class="form-group">
         <label>活動類型</label>
         <select id="activityType">
-            <option value="高動態競技 (跑跳、大動作)">高動態競技 (跑跳、大動作)</option>
+            <option value="高">高動態競技 (跑跳、大動作)</option>
             <option value="中">中動態遊戲 (分組對抗、互動)</option>
             <option value="靜態">腦力實境解謎 (靜態思維)</option>
         </select>
@@ -51,9 +51,9 @@
 
 <script>
     // --- 串接位子 1：請填入你的 LIFF ID ---
-    const MY_LIFF_ID = '你的_LIFF_ID_填在這裡';
+    const MY_LIFF_ID = '2009929425-I5NNacXK';
     // --- 串接位子 2：請填入你的 n8n Webhook URL ---
-    const N8N_WEBHOOK_URL = 'http://localhost:5678/webhook/smartplay-search';
+    const N8N_WEBHOOK_URL = 'http://localhost:5678/webhook-test/smartplay-search'; 
 
     async function initializeLiff() {
         try {
