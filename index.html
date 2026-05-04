@@ -7,103 +7,116 @@
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-slate-50 p-4">
-    <div class="max-w-md mx-auto bg-white rounded-xl shadow-md overflow-hidden p-6">
-        <h1 class="text-2xl font-bold text-slate-800 mb-4">SmartPlay AI 遊戲規劃</h1>
+<body class="bg-slate-100 p-4">
+    <div class="max-w-md mx-auto bg-white rounded-3xl shadow-xl p-8">
+        <h2 class="text-2xl font-bold text-indigo-800 mb-2">🎮 遊戲方案創新設計</h2>
+        <p class="text-slate-500 text-sm mb-6">基於校內遊戲庫，為您量身打造新玩法</p>
         
-        <form id="gameForm" class="space-y-4">
-            <!-- 1. 人數選擇 -->
+        <form id="gameForm" class="space-y-6">
+            <!-- 1. 人數對齊 (小/中/大) -->
             <div>
-                <label class="block text-sm font-medium text-slate-700">活動人數</label>
-                <select id="peopleCount" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm p-2 bg-slate-100">
+                <label class="block text-sm font-bold text-slate-700 mb-2">預計人數規模</label>
+                <select id="people" class="w-full border-2 border-slate-100 rounded-xl p-3 focus:border-indigo-500 outline-none transition-all">
                     <option value="小">小 (1-10人)</option>
                     <option value="中">中 (11-30人)</option>
                     <option value="大">大 (30人以上)</option>
                 </select>
             </div>
 
-            <!-- 2. 場地需求 -->
+            <!-- 2. 動態程度 (靜態/中動態/高動態) -->
             <div>
-                <label class="block text-sm font-medium text-slate-700">場地類型</label>
-                <select id="venueType" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm p-2 bg-slate-100">
-                    <option value="室內">室內</option>
-                    <option value="室外">室外</option>
-                    <option value="皆可">不拘</option>
-                </select>
-            </div>
-
-            <!-- 3. 動態程度 -->
-            <div>
-                <label class="block text-sm font-medium text-slate-700">動態程度</label>
-                <select id="dynamism" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm p-2 bg-slate-100">
-                    <option value="靜態">靜態 (坐著玩)</option>
-                    <option value="中動態">中動態 (小範圍走動)</option>
+                <label class="block text-sm font-bold text-slate-700 mb-2">活動動態偏好</label>
+                <select id="dynamism" class="w-full border-2 border-slate-100 rounded-xl p-3 focus:border-indigo-500 outline-none transition-all">
+                    <option value="靜態">靜態 (文靜思考)</option>
+                    <option value="中動態">中動態 (小範圍互動)</option>
                     <option value="高動態">高動態 (奔跑競技)</option>
                 </select>
             </div>
 
-            <!-- 4. 手動地點輸入 -->
+            <!-- 3. 地點 (手動輸入) -->
             <div>
-                <label class="block text-sm font-medium text-slate-700">具體地點 (手動輸入)</label>
-                <input type="text" id="actualLocation" placeholder="例如：商學院 102 教室" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm p-2 bg-slate-100">
+                <label class="block text-sm font-bold text-slate-700 mb-2">具體活動地點</label>
+                <input type="text" id="location" placeholder="例如：商學院 102 教室" 
+                       class="w-full border-2 border-slate-100 rounded-xl p-3 focus:border-indigo-500 outline-none transition-all">
             </div>
 
-            <button type="button" id="submitBtn" class="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700">開始創新設計</button>
+            <!-- 4. 提交按鈕 (初始設為禁用，初始化後開啟) -->
+            <button type="button" id="startBtn" disabled 
+                    class="w-full bg-slate-400 text-white font-bold py-4 rounded-2xl shadow-lg transition-all cursor-not-allowed">
+                正在讀取系統...
+            </button>
         </form>
     </div>
 
     <script>
         const MY_LIFF_ID = '2009929425-I5NNacXK'; 
-        const N8N_WEBHOOK_URL = 'https://untemptingly-psychopathological-daina.ngrok-free.dev/webhook/smartplay-search';
+        const WEBHOOK_URL = 'https://untemptingly-psychopathological-daina.ngrok-free.dev/webhook/smartplay-search';
 
-        async function initLIFF() {
+        // 初始化 LIFF
+        async function initializeLiff() {
             try {
                 await liff.init({ liffId: MY_LIFF_ID });
                 if (!liff.isLoggedIn()) {
                     liff.login();
+                } else {
+                    enableButton();
                 }
             } catch (err) {
                 console.error('LIFF 初始化失敗', err);
+                alert('系統載入失敗，請確認網路連線');
             }
         }
 
-        document.getElementById('submitBtn').addEventListener('click', async () => {
-            const profile = await liff.getProfile();
-            const postData = {
-                userId: profile.userId,
-                userName: profile.displayName,
-                people: document.getElementById('peopleCount').value,
-                venue: document.getElementById('venueType').value,
-                dynamism: document.getElementById('dynamism').value,
-                location: document.getElementById('actualLocation').value
-            };
+        // 啟用按鈕
+        function enableButton() {
+            const btn = document.getElementById('startBtn');
+            btn.disabled = false;
+            btn.innerText = '開始創新設計';
+            btn.classList.remove('bg-slate-400', 'cursor-not-allowed');
+            btn.classList.add('bg-indigo-600', 'hover:bg-indigo-700');
+        }
 
-            // 顯示處理中
-            document.getElementById('submitBtn').innerText = 'AI 正在研發中...';
-            document.getElementById('submitBtn').disabled = true;
+        // 點擊事件
+        document.getElementById('startBtn').addEventListener('click', async () => {
+            const btn = document.getElementById('startBtn');
+            btn.disabled = true;
+            btn.innerText = 'AI 正在結合遊戲庫發想中...';
 
             try {
-                const response = await fetch(N8N_WEBHOOK_URL, {
+                const profile = await liff.getProfile();
+                const payload = {
+                    userId: profile.userId,
+                    userName: profile.displayName,
+                    people: document.getElementById('people').value,
+                    dynamism: document.getElementById('dynamism').value,
+                    location: document.getElementById('location').value
+                };
+
+                const response = await fetch(WEBHOOK_URL, {
                     method: 'POST',
-                    headers: {
+                    headers: { 
                         'Content-Type': 'application/json',
-                        'ngrok-skip-browser-warning': 'true' // 跳過 ngrok 警告
+                        'ngrok-skip-browser-warning': 'true' 
                     },
-                    body: JSON.stringify(postData)
+                    body: JSON.stringify(payload)
                 });
-                
+
                 if (response.ok) {
-                    alert('提案已準備好，請回 LINE 聊天室查看！');
+                    alert('創新方案已生成！請回 LINE 聊天室查看。');
+                } else {
+                    alert('伺服器回應錯誤');
                 }
             } catch (err) {
-                alert('連線失敗，請確認 ngrok 是否開啟');
+                console.error(err);
+                alert('連線失敗，請確認 ngrok 視窗是否開啟');
             } finally {
-                document.getElementById('submitBtn').innerText = '開始創新設計';
-                document.getElementById('submitBtn').disabled = false;
+                btn.disabled = false;
+                btn.innerText = '開始創新設計';
             }
         });
 
-        initLIFF();
+        // 啟動
+        initializeLiff();
     </script>
 </body>
 </html>
