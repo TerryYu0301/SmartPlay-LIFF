@@ -10,13 +10,14 @@
 <body class="bg-slate-100 p-4">
     <div class="max-w-md mx-auto bg-white rounded-3xl shadow-xl p-8">
         <h2 class="text-2xl font-bold text-indigo-800 mb-2">🎮 遊戲方案創新設計</h2>
-        <p class="text-slate-500 text-sm mb-6">基於校內遊戲庫，為您量身打造新玩法</p>
+        <p class="text-slate-500 text-sm mb-6">為您量身打造專屬新玩法</p>
         
         <form id="gameForm" class="space-y-6">
             <!-- 1. 人數對齊 (小/中/大) -->
             <div>
                 <label class="block text-sm font-bold text-slate-700 mb-2">預計人數規模</label>
-                <select id="people" class="w-full border-2 border-slate-100 rounded-xl p-3 focus:border-indigo-500 outline-none transition-all">
+                <select id="people" class="w-full border-2 border-slate-100 rounded-xl p-3 focus:border-indigo-500 outline-none">
+                    <option value="">-- 請選擇人數 --</option>
                     <option value="小">小 (1-10人)</option>
                     <option value="中">中 (11-30人)</option>
                     <option value="大">大 (30人以上)</option>
@@ -26,7 +27,8 @@
             <!-- 2. 動態程度 (靜態/中動態/高動態) -->
             <div>
                 <label class="block text-sm font-bold text-slate-700 mb-2">活動動態偏好</label>
-                <select id="dynamism" class="w-full border-2 border-slate-100 rounded-xl p-3 focus:border-indigo-500 outline-none transition-all">
+                <select id="dynamism" class="w-full border-2 border-slate-100 rounded-xl p-3 focus:border-indigo-500 outline-none">
+                    <option value="">-- 請選擇動態程度 --</option>
                     <option value="靜態">靜態 (文靜思考)</option>
                     <option value="中動態">中動態 (小範圍互動)</option>
                     <option value="高動態">高動態 (奔跑競技)</option>
@@ -37,59 +39,67 @@
             <div>
                 <label class="block text-sm font-bold text-slate-700 mb-2">具體活動地點</label>
                 <input type="text" id="location" placeholder="例如：商學院 102 教室" 
-                       class="w-full border-2 border-slate-100 rounded-xl p-3 focus:border-indigo-500 outline-none transition-all">
+                       class="w-full border-2 border-slate-100 rounded-xl p-3 focus:border-indigo-500 outline-none">
             </div>
 
-            <!-- 4. 提交按鈕 (初始設為禁用，初始化後開啟) -->
-            <button type="button" id="startBtn" disabled 
-                    class="w-full bg-slate-400 text-white font-bold py-4 rounded-2xl shadow-lg transition-all cursor-not-allowed">
-                正在讀取系統...
+            <button type="button" id="startBtn" 
+                    class="w-full bg-slate-400 text-white font-bold py-4 rounded-2xl shadow-lg transition-all">
+                正在啟動系統...
             </button>
         </form>
     </div>
 
     <script>
+        // 嚴格採用你指定的 ID
         const MY_LIFF_ID = '2009929425-I5NNacXK'; 
         const WEBHOOK_URL = 'https://untemptingly-psychopathological-daina.ngrok-free.dev/webhook/smartplay-search';
 
-        // 初始化 LIFF
         async function initializeLiff() {
             try {
                 await liff.init({ liffId: MY_LIFF_ID });
                 if (!liff.isLoggedIn()) {
                     liff.login();
                 } else {
-                    enableButton();
+                    console.log("LIFF 已就緒");
+                    setButtonReady();
                 }
             } catch (err) {
                 console.error('LIFF 初始化失敗', err);
-                alert('系統載入失敗，請確認網路連線');
+                // 即使失敗也嘗試解鎖按鈕讓使用者能點擊，以便觀察報錯
+                setButtonReady();
             }
         }
 
-        // 啟用按鈕
-        function enableButton() {
+        function setButtonReady() {
             const btn = document.getElementById('startBtn');
-            btn.disabled = false;
             btn.innerText = '開始創新設計';
-            btn.classList.remove('bg-slate-400', 'cursor-not-allowed');
+            btn.classList.remove('bg-slate-400');
             btn.classList.add('bg-indigo-600', 'hover:bg-indigo-700');
         }
 
-        // 點擊事件
         document.getElementById('startBtn').addEventListener('click', async () => {
+            // 1. 防呆提醒邏輯
+            const people = document.getElementById('people').value;
+            const dynamism = document.getElementById('dynamism').value;
+            const location = document.getElementById('location').value;
+
+            if (!people || !dynamism || !location) {
+                alert('請完整填寫人數、動態程度與地點喔！');
+                return;
+            }
+
             const btn = document.getElementById('startBtn');
             btn.disabled = true;
-            btn.innerText = 'AI 正在結合遊戲庫發想中...';
+            btn.innerText = 'AI 正在融合遊戲庫發想中...';
 
             try {
                 const profile = await liff.getProfile();
                 const payload = {
                     userId: profile.userId,
                     userName: profile.displayName,
-                    people: document.getElementById('people').value,
-                    dynamism: document.getElementById('dynamism').value,
-                    location: document.getElementById('location').value
+                    people: people,
+                    dynamism: dynamism,
+                    location: location
                 };
 
                 const response = await fetch(WEBHOOK_URL, {
@@ -102,20 +112,19 @@
                 });
 
                 if (response.ok) {
-                    alert('創新方案已生成！請回 LINE 聊天室查看。');
+                    alert('創新方案已送達！請回聊天室確認。');
                 } else {
-                    alert('伺服器回應錯誤');
+                    alert('伺服器目前有點忙碌，請稍後再試。');
                 }
             } catch (err) {
                 console.error(err);
-                alert('連線失敗，請確認 ngrok 視窗是否開啟');
+                alert('連線失敗，請檢查 ngrok 是否正常開啟。');
             } finally {
                 btn.disabled = false;
                 btn.innerText = '開始創新設計';
             }
         });
 
-        // 啟動
         initializeLiff();
     </script>
 </body>
