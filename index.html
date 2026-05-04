@@ -1,132 +1,109 @@
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SmartPlay AI 行政代理人</title>
+    <title>SmartPlay AI 遊戲設計師</title>
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-    <style>
-        body { font-family: sans-serif; background: #f4f7f6; padding: 20px; color: #333; }
-        .container { max-width: 500px; margin: 0 auto; background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        h2 { color: #2c3e50; text-align: center; }
-        .form-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; font-weight: bold; }
-        input, select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
-        button { width: 100%; padding: 12px; background: #27ae60; color: white; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; transition: 0.3s; }
-        button:hover { background: #219150; }
-        #result-area { margin-top: 20px; padding: 15px; border-radius: 8px; display: none; }
-        .loading { text-align: center; color: #7f8c8d; font-style: italic; }
-    </style>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-
-<div class="container">
-    <h2>🎮 SmartPlay AI 代理人</h2>
-    <p>歡迎，<span id="userName">讀取中...</span>！請輸入活動需求：</p>
-    
-    <div class="form-group">
-        <label>活動人數</label>
-        <input type="number" id="peopleCount" placeholder="例如：40">
-    </div>
-
-    <div class="form-group">
-        <label>活動類型</label>
-        <select id="activityType">
-            <option value="高">高動態競技 (跑跳、大動作)</option>
-            <option value="中">中動態遊戲 (分組對抗、互動)</option>
-            <option value="靜態">腦力實境解謎 (靜態思維)</option>
-        </select>
-    </div>
-
-    <div class="form-group">
-        <label>預計地點</label>
-        <input type="text" id="location" value="三峽校區商學院" placeholder="請輸入地點">
-    </div>
-
-    <button id="submitBtn" onclick="submitToN8N()">開始智慧規劃</button>
-
-    <div id="loading" class="loading" style="display:none;">AI 正在翻閱資料庫並規劃中...</div>
-    <div id="result-area"></div>
-</div>
-
-<script>
-    // --- 串接位子 1：請填入你的 LIFF ID ---
-    const MY_LIFF_ID = '2009929425-I5NNacXK';
-    // --- 串接位子 2：請填入你的 n8n Webhook URL ---
-    const N8N_WEBHOOK_URL = 'https://untemptingly-psychopathological-daina.ngrok-free.dev/webhook/smartplay-search'; 
-
-    async function initializeLiff() {
-        try {
-            await liff.init({ liffId: MY_LIFF_ID });
-            if (liff.isLoggedIn()) {
-                const profile = await liff.getProfile();
-                document.getElementById('userName').innerText = profile.displayName;
-            } else {
-                liff.login();
-            }
-        } catch (err) {
-            console.error('LIFF 初始化失敗', err);
-        }
-    }
-
-    async function submitToN8N() {
-        const people = document.getElementById('peopleCount').value;
-        const type = document.getElementById('activityType').value;
-        const loc = document.getElementById('location').value;
-        const user = document.getElementById('userName').innerText;
-
-        if (!people) return alert("請輸入人數！");
-
-        // 顯示載入狀態
-        document.getElementById('submitBtn').disabled = true;
-        document.getElementById('loading').style.display = 'block';
-        document.getElementById('result-area').style.display = 'none';
-
-        const payload = {
-            activityType: type, // 對應 Excel 的「動態」欄位
-            peopleCount: people,
-            location: loc,
-            userName: user
-        };
-
-        try {
-            const response = await fetch(N8N_WEBHOOK_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                displayResult(data);
-            } else {
-                alert("n8n 伺服器反應異常，請檢查流程是否已發佈(Publish)。");
-            }
-        } catch (error) {
-            alert("連線失敗：" + error.message);
-        } finally {
-            document.getElementById('submitBtn').disabled = false;
-            document.getElementById('loading').style.display = 'none';
-        }
-    }
-
-    function displayResult(data) {
-        const resultArea = document.getElementById('result-area');
-        resultArea.style.display = 'block';
-        resultArea.style.background = '#e8f5e9';
+<body class="bg-slate-50 p-4">
+    <div class="max-w-md mx-auto bg-white rounded-xl shadow-md overflow-hidden p-6">
+        <h1 class="text-2xl font-bold text-slate-800 mb-4">SmartPlay AI 遊戲規劃</h1>
         
-        // 假設你的 AI Agent 輸出的文字欄位叫做 output 或 text
-        const aiText = data.output || data.text || JSON.stringify(data);
-        
-        resultArea.innerHTML = `
-            <h3 style="color: #27ae60;">✨ AI 規劃結果</h3>
-            <div style="white-space: pre-wrap; line-height: 1.6;">${aiText}</div>
-            <button onclick="location.reload()" style="margin-top:10px; background:#95a5a6;">重新規劃</button>
-        `;
-    }
+        <form id="gameForm" class="space-y-4">
+            <!-- 1. 人數選擇 -->
+            <div>
+                <label class="block text-sm font-medium text-slate-700">活動人數</label>
+                <select id="peopleCount" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm p-2 bg-slate-100">
+                    <option value="小">小 (1-10人)</option>
+                    <option value="中">中 (11-30人)</option>
+                    <option value="大">大 (30人以上)</option>
+                </select>
+            </div>
 
-    initializeLiff();
-</script>
+            <!-- 2. 場地需求 -->
+            <div>
+                <label class="block text-sm font-medium text-slate-700">場地類型</label>
+                <select id="venueType" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm p-2 bg-slate-100">
+                    <option value="室內">室內</option>
+                    <option value="室外">室外</option>
+                    <option value="皆可">不拘</option>
+                </select>
+            </div>
 
+            <!-- 3. 動態程度 -->
+            <div>
+                <label class="block text-sm font-medium text-slate-700">動態程度</label>
+                <select id="dynamism" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm p-2 bg-slate-100">
+                    <option value="靜態">靜態 (坐著玩)</option>
+                    <option value="中動態">中動態 (小範圍走動)</option>
+                    <option value="高動態">高動態 (奔跑競技)</option>
+                </select>
+            </div>
+
+            <!-- 4. 手動地點輸入 -->
+            <div>
+                <label class="block text-sm font-medium text-slate-700">具體地點 (手動輸入)</label>
+                <input type="text" id="actualLocation" placeholder="例如：商學院 102 教室" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm p-2 bg-slate-100">
+            </div>
+
+            <button type="button" id="submitBtn" class="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700">開始創新設計</button>
+        </form>
+    </div>
+
+    <script>
+        const MY_LIFF_ID = '2009929425-I5NNAcXK'; 
+        const N8N_WEBHOOK_URL = 'https://untemptingly-psychopathological-daina.ngrok-free.dev/webhook/smartplay-search';
+
+        async function initLIFF() {
+            try {
+                await liff.init({ liffId: MY_LIFF_ID });
+                if (!liff.isLoggedIn()) {
+                    liff.login();
+                }
+            } catch (err) {
+                console.error('LIFF 初始化失敗', err);
+            }
+        }
+
+        document.getElementById('submitBtn').addEventListener('click', async () => {
+            const profile = await liff.getProfile();
+            const postData = {
+                userId: profile.userId,
+                userName: profile.displayName,
+                people: document.getElementById('peopleCount').value,
+                venue: document.getElementById('venueType').value,
+                dynamism: document.getElementById('dynamism').value,
+                location: document.getElementById('actualLocation').value
+            };
+
+            // 顯示處理中
+            document.getElementById('submitBtn').innerText = 'AI 正在研發中...';
+            document.getElementById('submitBtn').disabled = true;
+
+            try {
+                const response = await fetch(N8N_WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'ngrok-skip-browser-warning': 'true' // 跳過 ngrok 警告
+                    },
+                    body: JSON.stringify(postData)
+                });
+                
+                if (response.ok) {
+                    alert('提案已準備好，請回 LINE 聊天室查看！');
+                }
+            } catch (err) {
+                alert('連線失敗，請確認 ngrok 是否開啟');
+            } finally {
+                document.getElementById('submitBtn').innerText = '開始創新設計';
+                document.getElementById('submitBtn').disabled = false;
+            }
+        });
+
+        initLIFF();
+    </script>
 </body>
 </html>
