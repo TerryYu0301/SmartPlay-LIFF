@@ -3,25 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>智動創遊 - 遊戲方案創新設計 (Test Mode)</title>
+    <title>智動創遊 - 遊戲方案設計</title>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #f0f2f5; padding: 20px; display: flex; justify-content: center; }
-        .card { background: white; padding: 30px; border-radius: 24px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); width: 100%; max-width: 420px; }
-        .logo { font-size: 26px; color: #5856d6; font-weight: 800; margin-bottom: 8px; display: flex; align-items: center; gap: 10px; }
-        .subtitle { color: #666; font-size: 14px; margin-bottom: 25px; }
-        label { display: block; margin-top: 18px; margin-bottom: 8px; color: #333; font-size: 15px; font-weight: 600; }
-        select, input { width: 100%; padding: 14px; border: 1.5px solid #eee; border-radius: 12px; margin-bottom: 5px; box-sizing: border-box; font-size: 15px; transition: 0.3s; }
-        select:focus, input:focus { border-color: #5856d6; outline: none; background-color: #f9f9ff; }
-        button { width: 100%; padding: 16px; background: linear-gradient(135deg, #8e9aaf 0%, #5856d6 100%); color: white; border: none; border-radius: 16px; font-size: 17px; font-weight: bold; cursor: pointer; transition: 0.3s; margin-top: 30px; box-shadow: 0 4px 15px rgba(88, 86, 214, 0.3); }
-        button:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(88, 86, 214, 0.4); }
-        button:disabled { background: #ccc; cursor: not-allowed; transform: none; }
+        body { font-family: sans-serif; background-color: #f0f2f5; padding: 20px; display: flex; justify-content: center; }
+        .card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 100%; max-width: 400px; }
+        .logo { font-size: 24px; color: #5856d6; font-weight: bold; margin-bottom: 20px; text-align: center; }
+        label { display: block; margin-top: 15px; margin-bottom: 5px; color: #333; font-weight: 600; }
+        select, input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; }
+        button { width: 100%; padding: 15px; background-color: #5856d6; color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 25px; }
+        button:disabled { background-color: #ccc; }
     </style>
 </head>
 <body>
     <div class="card">
-        <div class="logo">🎮 智動創遊 (Test)</div>
-        <p class="subtitle">為您量身打造專屬實境遊戲新玩法</p>
-
+        <div class="logo">🎮 智動創遊</div>
+        
         <label>預計人數規模</label>
         <select id="scale">
             <option value="小規模">小規模 (10人以下)</option>
@@ -36,64 +32,69 @@
             <option value="高動態">高動態 (追逐、對戰)</option>
         </select>
 
-        <label>預計活動時長</label>
-        <select id="duration">
-            <option value="短 (約 30-60 分鐘)">短 (約 30-60 分鐘)</option>
-            <option value="中 (約 1.5-2.5 小時)">中 (約 1.5-2.5 小時)</option>
-            <option value="長 (3 小時以上深度體驗)">長 (3 小時以上深度體驗)</option>
-        </select>
-
         <label>具體活動地點</label>
-        <input type="text" id="location" placeholder="例如：商學院 102、三峽校區操場">
+        <input type="text" id="location" placeholder="例如：商學 102、三峽操場">
 
         <button id="submitBtn">開始規劃遊戲方案</button>
     </div>
 
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <script>
-        // 🧪 使用 Test Webhook 路徑
+        // 🚀 按照你的要求：liffId 在網址上面一行
+        const MY_LIFF_ID = "2009929425-I5NNAcXK";
         const WEBHOOK_URL = 'https://untemptingly-psychopathological-daina.ngrok-free.dev/webhook-test/smartplay-search';
 
         async function initializeLiff() {
             try {
-                await liff.init({ liffId: "2009929425-I5NNAcXK" });
-                if (!liff.isLoggedIn()) {
-                    liff.login();
-                }
-            } catch (err) {
-                console.error("LIFF 初始化失敗", err);
+                await liff.init({ liffId: MY_LIFF_ID });
+                if (!liff.isLoggedIn()) { liff.login(); }
+            } catch (err) { 
+                alert("LIFF 初始化失敗: " + err);
             }
         }
-
         initializeLiff();
 
         document.getElementById('submitBtn').addEventListener('click', async () => {
             const btn = document.getElementById('submitBtn');
-            btn.innerText = "測試模式傳送中...";
+            
+            // 1. 按下去瞬間立刻改文字 (證明 JS 有在跑)
+            btn.innerText = "正在規劃中...";
             btn.disabled = true;
 
             try {
-                const profile = await liff.getProfile();
+                // 2. 獲取用戶資料
+                const profile = await liff.getProfile().catch(e => {
+                    throw new Error("無法取得 LINE 個人資料 (請確認權限)");
+                });
+
                 const data = {
                     userName: profile.displayName,
                     scale: document.getElementById('scale').value,
                     dynamic: document.getElementById('dynamic').value,
-                    duration: document.getElementById('duration').value,
-                    location: document.getElementById('location').value || "現場環境"
+                    location: document.getElementById('location').value || "現場環境" // 地點沒填也給預設值
                 };
 
-                await fetch(WEBHOOK_URL, {
+                // 3. 發送請求
+                const response = await fetch(WEBHOOK_URL, {
                     method: 'POST',
                     headers: { 
                         'Content-Type': 'application/json',
-                        'ngrok-skip-browser-warning': 'true' // 跳過 ngrok 警告
+                        'ngrok-skip-browser-warning': 'true' 
                     },
                     body: JSON.stringify(data)
+                }).catch(e => {
+                    throw new Error("網路連線失敗 (請確認 ngrok 是否開啟)");
                 });
 
-                liff.closeWindow();
+                if (response.ok) {
+                    liff.closeWindow();
+                } else {
+                    throw new Error("n8n 回傳錯誤 (代碼: " + response.status + ")");
+                }
+
             } catch (err) {
-                alert("傳送失敗！請確認 n8n 是否有點擊「Execute Workflow」");
+                // 4. 精確噴出錯誤訊息
+                alert("錯誤原因: " + err.message);
                 btn.innerText = "開始規劃遊戲方案";
                 btn.disabled = false;
             }
