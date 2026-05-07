@@ -5,43 +5,44 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>智動創遊 - 遊戲方案設計</title>
     <style>
-        body { font-family: sans-serif; background-color: #f0f2f5; padding: 20px; display: flex; justify-content: center; }
-        .card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 100%; max-width: 400px; }
-        .logo { font-size: 24px; color: #5856d6; font-weight: bold; margin-bottom: 20px; text-align: center; }
-        label { display: block; margin-top: 15px; margin-bottom: 5px; color: #333; font-weight: 600; }
-        select, input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; }
-        button { width: 100%; padding: 15px; background-color: #5856d6; color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 25px; }
-        button:disabled { background-color: #ccc; }
+        body { font-family: -apple-system, sans-serif; background-color: #f0f2f5; padding: 20px; display: flex; justify-content: center; }
+        .card { background: white; padding: 30px; border-radius: 24px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); width: 100%; max-width: 420px; }
+        .logo { font-size: 26px; color: #5856d6; font-weight: 800; margin-bottom: 8px; display: flex; align-items: center; gap: 10px; justify-content: center; }
+        label { display: block; margin-top: 18px; margin-bottom: 8px; color: #333; font-size: 15px; font-weight: 600; }
+        select, input { width: 100%; padding: 14px; border: 1.5px solid #eee; border-radius: 12px; margin-bottom: 5px; box-sizing: border-box; font-size: 15px; }
+        button { width: 100%; padding: 16px; background: linear-gradient(135deg, #8e9aaf 0%, #5856d6 100%); color: white; border: none; border-radius: 16px; font-size: 17px; font-weight: bold; cursor: pointer; transition: 0.3s; margin-top: 30px; }
+        button:disabled { background: #ccc; cursor: not-allowed; }
     </style>
 </head>
 <body>
     <div class="card">
         <div class="logo">🎮 智動創遊</div>
-        
+        <p style="color: #666; font-size: 14px; text-align: center;">為您量身打造專屬實境遊戲新玩法</p>
+
         <label>預計人數規模</label>
-        <select id="scale">
-            <option value="小規模">小規模 (10人以下)</option>
-            <option value="中規模">中規模 (11-30人)</option>
-            <option value="大規模">大規模 (30人以上)</option>
+        <select id="people">
+            <option value="小規模 (10人以下)">小規模 (10人以下)</option>
+            <option value="中規模 (11-30人)">中規模 (11-30人)</option>
+            <option value="大規模 (30人以上)">大規模 (30人以上)</option>
         </select>
 
         <label>活動動態偏好</label>
         <select id="dynamic">
-            <option value="靜態">靜態 (解謎、推理)</option>
-            <option value="中動態">中動態 (尋寶、闖關)</option>
-            <option value="高動態">高動態 (追逐、對戰)</option>
+            <option value="靜態 (解謎、推理)">靜態 (解謎、推理)</option>
+            <option value="中動態 (尋寶、闖關)">中動態 (尋寶、闖關)</option>
+            <option value="高動態 (追逐、對戰)">高動態 (追逐、對戰)</option>
         </select>
 
         <label>具體活動地點</label>
-        <input type="text" id="location" placeholder="例如：商學 102、三峽操場">
+        <input type="text" id="location" placeholder="例如：商學 102、三峽校區操場">
 
         <button id="submitBtn">開始規劃遊戲方案</button>
     </div>
 
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <script>
-        // 🚀 按照你的要求：liffId 在網址上面一行
-        const MY_LIFF_ID = "2009929425-I5NNacXK";
+        // 🚀 核心參數設定
+        const MY_LIFF_ID = "2009929425-I5NNacXK"; // 確保 A 為大寫
         const WEBHOOK_URL = 'https://untemptingly-psychopathological-daina.ngrok-free.dev/webhook-test/smartplay-search';
 
         async function initializeLiff() {
@@ -56,26 +57,23 @@
 
         document.getElementById('submitBtn').addEventListener('click', async () => {
             const btn = document.getElementById('submitBtn');
-            
-            // 1. 按下去瞬間立刻改文字 (證明 JS 有在跑)
-            btn.innerText = "正在規劃中...";
+            btn.innerText = "AI 正在規劃中...";
             btn.disabled = true;
 
             try {
-                // 2. 獲取用戶資料
-                const profile = await liff.getProfile().catch(e => {
-                    throw new Error("無法取得 LINE 個人資料 (請確認權限)");
-                });
+                // 1. 取得 LINE 個人檔案
+                const profile = await liff.getProfile();
 
+                // 2. 封裝資料 (確保欄位名稱與 n8n 一致)
                 const data = {
                     userId: profile.userId,
                     userName: profile.displayName,
-                    scale: document.getElementById('scale').value,
+                    people: document.getElementById('people').value,
                     dynamic: document.getElementById('dynamic').value,
-                    location: document.getElementById('location').value || "現場環境" // 地點沒填也給預設值
+                    location: document.getElementById('location').value || "現場環境"
                 };
 
-                // 3. 發送請求
+                // 3. 傳送到 n8n
                 const response = await fetch(WEBHOOK_URL, {
                     method: 'POST',
                     headers: { 
@@ -83,18 +81,15 @@
                         'ngrok-skip-browser-warning': 'true' 
                     },
                     body: JSON.stringify(data)
-                }).catch(e => {
-                    throw new Error("網路連線失敗 (請確認 ngrok 是否開啟)");
                 });
 
                 if (response.ok) {
-                    liff.closeWindow();
+                    liff.closeWindow(); // 成功後自動關閉視窗
                 } else {
-                    throw new Error("n8n 回傳錯誤 (代碼: " + response.status + ")");
+                    throw new Error("n8n 伺服器拒絕連線 (代碼: " + response.status + ")");
                 }
 
             } catch (err) {
-                // 4. 精確噴出錯誤訊息
                 alert("錯誤原因: " + err.message);
                 btn.innerText = "開始規劃遊戲方案";
                 btn.disabled = false;
