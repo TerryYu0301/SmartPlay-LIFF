@@ -20,7 +20,7 @@
         <p style="color: #666; font-size: 14px; text-align: center;">為您量身打造專屬實境遊戲新玩法</p>
 
         <label>預計人數規模</label>
-        <select id="people">
+        <select id="scale">
             <option value="小規模 (10人以下)">小規模 (10人以下)</option>
             <option value="中規模 (11-30人)">中規模 (11-30人)</option>
             <option value="大規模 (30人以上)">大規模 (30人以上)</option>
@@ -68,7 +68,7 @@
                 const data = {
                     userId: profile.userId,
                     userName: profile.displayName,
-                    people: document.getElementById('people').value,
+                    people: document.getElementById('scale').value,
                     dynamic: document.getElementById('dynamic').value,
                     location: document.getElementById('location').value || "現場環境"
                 };
